@@ -1,0 +1,2 @@
+# Diary
+Daily Hunters Diary
