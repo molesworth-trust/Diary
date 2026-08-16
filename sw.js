@@ -1,4 +1,4 @@
-const CACHE_NAME = 'molesworth-diary-v1.06';
+const CACHE_NAME = 'molesworth-diary-v1.07';
 const ASSETS = [
   './',
   './index.html',
