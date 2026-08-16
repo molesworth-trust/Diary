@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#2d4a3e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Molesworth Diary">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>Molesworth Daily Hunting Diary</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    :root {
+      --primary: #2d4a3e;
+      --accent: #e5ece8;
+      --highlight: #c4823f;
+      --text: #232d38;
+      --bg: #f2f4f3;
+      --card-border: #dbe3df;
+    }
+    html {
+      width: 100%;
+      overflow-x: hidden;
+    }
+    body {
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      padding: 12px 8px 30px 8px;
+      display: block;
+    }
+    .app-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto 20px auto;
+      padding: 18px 14px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .app-logo {
+      display: block;
+      max-width: 140px;
+      max-height: 80px;
+      width: auto;
+      height: auto;
+      margin: 0 auto 12px auto;
+      object-fit: contain;
+    }
+    h2 {
+      margin: 0 0 4px 0;
+      color: var(--primary);
+      text-align: center;
+      font-size: 1.45rem;
+    }
+    .subtitle {
+      text-align: center;
+      color: #616e75;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      margin: 20px 0 10px 0;
+      padding-bottom: 4px;
+      border-bottom: 2px solid var(--accent);
+      font-weight: 700;
+    }
+    .status-bar {
+      display: flex;
+      justify-content: center;
+      font-size: 0.82rem;
+      font-weight: bold;
+      margin-bottom: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .online { background: #e6f4ea; color: #137333; }
+    .offline { background: #fce8e6; color: #c5221f; }
+
+    .form-group {
+      margin-bottom: 14px;
+      width: 100%;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    input[type="date"], 
+    input[type="password"], 
+    input[type="text"],
+    select, 
+    textarea {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 11px;
+      border: 1px solid #cfd7d3;
+      border-radius: 8px;
+      box-sizing: border-box !important;
+      font-size: 0.95rem;
+      background: #fafafa;
+      display: block;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #ffffff;
+    }
+
+    /* Steppers */
+    .stepper-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      width: 100%;
+      gap: 6px;
+    }
+    .stepper-label {
+      font-weight: 600;
+      font-size: 0.88rem;
+      flex: 1;
+      word-break: break-word;
+    }
+    .stepper-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .stepper-controls button {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid var(--primary);
+      background: white;
+      color: var(--primary);
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .stepper-controls input {
+      width: 38px;
+      text-align: center;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      background: transparent;
+    }
+
+    /* Harvested Animal Dynamic Cards */
+    .harvest-container {
+      margin-top: 10px;
+    }
+    .harvest-card {
+      background: #fdfdfd;
+      border: 1.5px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .harvest-card-header {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .remove-btn {
+      background: #fce8e6;
+      color: #c5221f;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .add-harvest-btn {
+      width: 100%;
+      padding: 12px;
+      background: #ffffff;
+      color: var(--primary);
+      border: 2px dashed var(--primary);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 8px 0 16px 0;
+    }
+    .add-harvest-btn:active {
+      background: var(--accent);
+    }
+
+    button.submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+      box-shadow: 0 4px 12px rgba(45,74,62,0.25);
+    }
+    .queue-counter {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #666;
+      margin-top: 14px;
+    }
+    #authForm { display: block; }
+    #mainAppContent { display: none; }
+    .error-msg { color: #c5221f; font-size: 0.85rem; margin-top: 8px; font-weight: 600; display: none; }
+  </style>
+</head>
+<body>
+
+<div class="app-card">
+  <img src="./icon-192.png" alt="Molesworth Game and Conservation Trust" class="app-logo" onerror="this.style.display='none'">
+  <h2>Molesworth Daily Diary</h2>
+  <div class="subtitle">Daily Hunt Log & Demographic Record</div>
+
+  <!-- GATEKEEPER PASSCODE SECTION -->
+  <div id="authForm">
+    <div class="section-title" style="margin-top:0;">Permit Verification</div>
+    <div class="form-group">
+      <label for="gatekeeperPasscode">Enter Form Passcode</label>
+      <input type="password" id="gatekeeperPasscode" placeholder="Enter access code..." autocomplete="current-password">
+      <div id="authError" class="error-msg">⚠️ Incorrect passcode. Check your hunting group details.</div>
+    </div>
+    <button type="button" class="submit-btn" onclick="checkPasscode()">Unlock Diary</button>
+  </div>
+
+  <!-- MAIN REPORT FORM INTERFACE -->
+  <div id="mainAppContent">
+    <div id="statusBar" class="status-bar online">Checking Connection Status...</div>
+
+    <form id="reportForm">
+      <div class="section-title">Daily Hunt Header</div>
+      <div class="form-group">
+        <label for="logDate">Date of Hunt</label>
+        <input type="date" id="logDate" required>
+      </div>
+
+      <div class="form-group">
+        <label for="blockName">Hunting Block</label>
+        <select id="blockName" required>
+          <option value="">Select Molesworth Block...</option>
+          <option value="Alma">Alma</option>
+          <option value="Beggs">Beggs</option>
+          <option value="Big Bush">Big Bush</option>
+          <option value="Blinkers">Blinkers</option>
+          <option value="Bottom Acheron">Bottom Acheron</option>
+          <option value="Boundary">Boundary</option>
+          <option value="Bullen">Bullen</option>
+          <option value="Bullock Gully">Bullock Gully</option>
+          <option value="Bunkers">Bunkers</option>
+          <option value="Cat Creek">Cat Creek</option>
+          <option value="Chimney">Chimney</option>
+          <option value="Clarence Faces">Clarence Faces</option>
+          <option value="Crimea">Crimea</option>
+          <option value="Dillon">Dillon</option>
+          <option value="Dog Stream">Dog Stream</option>
+          <option value="Elliot">Elliot</option>
+          <option value="Five Mile">Five Mile</option>
+          <option value="Half Moon">Half Moon</option>
+          <option value="Lake McRae">Lake McRae</option>
+          <option value="Lizard">Lizard</option>
+          <option value="Long Gully">Long Gully</option>
+          <option value="Makuratawhai">Makuratawhai</option>
+          <option value="McGuires">McGuires</option>
+          <option value="Mid Alma">Mid Alma</option>
+          <option value="Mt Scott">Mt Scott</option>
+          <option value="Mt Severn">Mt Severn</option>
+          <option value="Pig Trough">Pig Trough</option>
+          <option value="Sawnee">Sawnee</option>
+          <option value="Super Shed">Super Shed</option>
+          <option value="Timms">Timms</option>
+          <option value="Travellers">Travellers</option>
+          <option value="Turks">Turks</option>
+          <option value="Tweed">Tweed</option>
+          <option value="Upper Acheron">Upper Acheron</option>
+          <option value="Upper Alma">Upper Alma</option>
+          <option value="Upper Saxton">Upper Saxton</option>
+          <option value="Upper Severn">Upper Severn</option>
+          <option value="Upper Wairau">Upper Wairau</option>
+          <option value="Yarra">Yarra</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="partyLeader">Hunter / Party Name</label>
+        <input type="text" id="partyLeader" placeholder="e.g. Smith Party / Craig B." required>
+      </div>
+
+      <div class="section-title">Daily Effort & Conditions</div>
+      <div class="stepper-group">
+        <span class="stepper-label">Number of Hunters Out</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('numHunters', -1)">−</button>
+          <input type="number" id="numHunters" value="1" readonly>
+          <button type="button" onclick="changeVal('numHunters', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="stepper-group">
+        <span class="stepper-label">Hours Hunted (On Foot)</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('hoursHunted', -1)">−</button>
+          <input type="number" id="hoursHunted" value="4" readonly>
+          <button type="button" onclick="changeVal('hoursHunted', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 10px;">
+        <label for="weatherCond">Weather & Visibility</label>
+        <select id="weatherCond">
+          <option value="Fine / Clear Visibility">Fine / Clear Visibility</option>
+          <option value="Overcast / Moderate Visibility">Overcast / Moderate Visibility</option>
+          <option value="High Winds / Cold">High Winds / Cold</option>
+          <option value="Rain / Low Cloud / Fog">Rain / Low Cloud / Fog</option>
+          <option value="Snow / Sleet / Severe">Snow / Sleet / Severe</option>
+        </select>
+      </div>
+
+      <div class="section-title">Sightings (Sex & Class Breakdown)</div>
+      <!-- Red Deer -->
+      <div class="stepper-group">
+        <span class="stepper-label">Red Stags Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('redStagsSeen', -1)">−</button>
+          <input type="number" id="redStagsSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('redStagsSeen', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-group">
+        <span class="stepper-label">Red Hinds / Calves Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('redHindsSeen', -1)">−</button>
+          <input type="number" id="redHindsSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('redHindsSeen', 1)">+</button>
+        </div>
+      </div>
+
+      <!-- Fallow Deer -->
+      <div class="stepper-group">
+        <span class="stepper-label">Fallow Bucks Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('fallowBucksSeen', -1)">−</button>
+          <input type="number" id="fallowBucksSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('fallowBucksSeen', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-group">
+        <span class="stepper-label">Fallow Does / Fawns Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('fallowDoesSeen', -1)">−</button>
+          <input type="number" id="fallowDoesSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('fallowDoesSeen', 1)">+</button>
+        </div>
+      </div>
+
+      <!-- Chamois -->
+      <div class="stepper-group">
+        <span class="stepper-label">Chamois Bucks Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('chamoisBucksSeen', -1)">−</button>
+          <input type="number" id="chamoisBucksSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('chamoisBucksSeen', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-group">
+        <span class="stepper-label">Chamois Does / Kids Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('chamoisDoesSeen', -1)">−</button>
+          <input type="number" id="chamoisDoesSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('chamoisDoesSeen', 1)">+</button>
+        </div>
+      </div>
+
+      <!-- Pigs, Goats, Small Game -->
+      <div class="stepper-group">
+        <span class="stepper-label">Wild Pigs Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('pigsSeen', -1)">−</button>
+          <input type="number" id="pigsSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('pigsSeen', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-group">
+        <span class="stepper-label">Feral Goats Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('goatsSeen', -1)">−</button>
+          <input type="number" id="goatsSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('goatsSeen', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-group">
+        <span class="stepper-label">Canada Geese Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('geeseSeen', -1)">−</button>
+          <input type="number" id="geeseSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('geeseSeen', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-group">
+        <span class="stepper-label">Hares / Rabbits Seen</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('smallGameSeen', -1)">−</button>
+          <input type="number" id="smallGameSeen" value="0" readonly>
+          <button type="button" onclick="changeVal('smallGameSeen', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="section-title">Pests Destroyed Today</div>
+      <div class="stepper-group">
+        <span class="stepper-label">Possums Destroyed</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('possumsDestroyed', -1)">−</button>
+          <input type="number" id="possumsDestroyed" value="0" readonly>
+          <button type="button" onclick="changeVal('possumsDestroyed', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-group">
+        <span class="stepper-label">Feral Cats / Mustelids</span>
+        <div class="stepper-controls">
+          <button type="button" onclick="changeVal('predatorsDestroyed', -1)">−</button>
+          <input type="number" id="predatorsDestroyed" value="0" readonly>
+          <button type="button" onclick="changeVal('predatorsDestroyed', 1)">+</button>
+        </div>
+      </div>
+
+      <!-- DETAILED HARVEST LOG -->
+      <div class="section-title">Animals Taken Today</div>
+      <div id="harvestList" class="harvest-container"></div>
+      <button type="button" class="add-harvest-btn" onclick="addHarvestCard()">+ Record An Animal Taken</button>
+
+      <div class="section-title">Daily Notes & Habitat Observations</div>
+      <div class="form-group">
+        <label for="comments">Catchment, animal health, pine sightings, fences</label>
+        <textarea id="comments" rows="3" placeholder="Specific creek/faces hunted, fat layers on meat, stock status..."></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">Save Daily Diary Entry</button>
+    </form>
+
+    <div class="queue-counter" id="queueStatus">0 entries queued offline</div>
+  </div>
+</div>
+
+<script>
+  let db;
+  let harvestIndex = 0;
+
+  // Insert your deployed Google Apps Script /exec URL
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKixhorEmorPS0OSUW49jg8sR4n6Dkr8GtHP_KCedmk5nrMjEeyK7dlrpGIOL3N5sh/exec';
+  const APP_SECRET_PASSCODE = 'Molesworth2026';
+
+  function checkPasscode() {
+    const userInput = document.getElementById('gatekeeperPasscode').value;
+    const errorDiv = document.getElementById('authError');
+    if (userInput === APP_SECRET_PASSCODE) {
+      document.getElementById('authForm').style.display = 'none';
+      document.getElementById('mainAppContent').style.display = 'block';
+      // Set today's date automatically
+      document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
+      initIndexedDB();
+    } else {
+      errorDiv.style.display = 'block';
+    }
+  }
+
+  function changeVal(id, amount) {
+    const input = document.getElementById(id);
+    let current = parseInt(input.value) || 0;
+    let updated = current + amount;
+    if (updated < 0) updated = 0;
+    input.value = updated;
+  }
+
+  function addHarvestCard() {
+    harvestIndex++;
+    const container = document.getElementById('harvestList');
+    const card = document.createElement('div');
+    card.className = 'harvest-card';
+    card.id = `harvestCard_${harvestIndex}`;
+
+    card.innerHTML = `
+      <div class="harvest-card-header">
+        <span>Animal #${harvestIndex} Details</span>
+        <button type="button" class="remove-btn" onclick="removeHarvestCard(${harvestIndex})">✕ Remove</button>
+      </div>
+      <div class="form-group">
+        <label>Species</label>
+        <select class="h-species">
+          <option value="Red Deer">Red Deer</option>
+          <option value="Fallow Deer">Fallow Deer</option>
+          <option value="Chamois">Chamois</option>
+          <option value="Wild Pig">Wild Pig</option>
+          <option value="Feral Goat">Feral Goat</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sex</label>
+        <select class="h-sex">
+          <option value="Male">Male (Stag / Buck / Boar / Billy)</option>
+          <option value="Female">Female (Hind / Doe / Sow / Nanny)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Age Class</label>
+        <select class="h-age">
+          <option value="Mature">Mature Adult</option>
+          <option value="Yearling">Yearling / Spiker</option>
+          <option value="Juvenile">Juvenile / Calf / Fawn / Kid</option>
+          <option value="Aged">Aged / Worn Teeth</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Body Condition</label>
+        <select class="h-condition">
+          <option value="Prime / Heavy Fat">Prime / Heavy Fat</option>
+          <option value="Good / Moderate Fat">Good / Moderate Fat</option>
+          <option value="Fair / Lean">Fair / Lean</option>
+          <option value="Poor / Emaciated">Poor / Emaciated</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Carcass Utilization</label>
+        <select class="h-utilization">
+          <option value="Full Meat Recovery">Full Meat Recovery (Carried Out)</option>
+          <option value="Hindquarters & Backstraps">Hindquarters & Backstraps Only</option>
+          <option value="Head / Trophy Only">Head / Trophy Only</option>
+          <option value="Culled / Left on Hill">Culled / Left on Hill</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Suspected Bovine TB Lesions</label>
+        <select class="h-tb">
+          <option value="Clean / None Observed">Clean / Inspected - None Observed</option>
+          <option value="Suspect Lesions in Lungs/Nodes">Suspect Lesions in Lungs/Nodes</option>
+          <option value="Not Inspected">Not Inspected</option>
+        </select>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+
+  function removeHarvestCard(id) {
+    const card = document.getElementById(`harvestCard_${id}`);
+    if (card) card.remove();
+  }
+
+  function initIndexedDB() {
+    const request = indexedDB.open('MolesworthDiaryDB', 1);
+    request.onupgradeneeded = (e) => {
+      db = e.target.result;
+      db.createObjectStore('daily_logs', { keyPath: 'id', autoIncrement: true });
+    };
+    request.onsuccess = (e) => {
+      db = e.target.result;
+      updateQueueDisplay();
+      syncData();
+    };
+    setTimeout(updateNetworkStatus, 200);
+  }
+
+  window.addEventListener('online', updateNetworkStatus);
+  window.addEventListener('offline', updateNetworkStatus);
+
+  function updateNetworkStatus() {
+    const bar = document.getElementById('statusBar');
+    if (!bar) return;
+    if (navigator.onLine) {
+      bar.textContent = "● Connected Online (Sync Armed)";
+      bar.className = "status-bar online";
+      syncData();
+    } else {
+      bar.textContent = "○ Backcountry Offline (Diary Safe)";
+      bar.className = "status-bar offline";
+    }
+  }
+
+  document.getElementById('reportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Extract harvested animal cards
+    const harvestCards = document.querySelectorAll('.harvest-card');
+    const harvests = [];
+    harvestCards.forEach((card) => {
+      harvests.push({
+        species: card.querySelector('.h-species').value,
+        sex: card.querySelector('.h-sex').value,
+        age: card.querySelector('.h-age').value,
+        condition: card.querySelector('.h-condition').value,
+        utilization: card.querySelector('.h-utilization').value,
+        tb: card.querySelector('.h-tb').value
+      });
+    });
+
+    const record = {
+      timestamp: new Date().toLocaleString('en-NZ'),
+      logDate: document.getElementById('logDate').value,
+      blockName: document.getElementById('blockName').value,
+      partyLeader: document.getElementById('partyLeader').value,
+      numHunters: document.getElementById('numHunters').value,
+      hoursHunted: document.getElementById('hoursHunted').value,
+      weatherCond: document.getElementById('weatherCond').value,
+      redStagsSeen: document.getElementById('redStagsSeen').value,
+      redHindsSeen: document.getElementById('redHindsSeen').value,
+      fallowBucksSeen: document.getElementById('fallowBucksSeen').value,
+      fallowDoesSeen: document.getElementById('fallowDoesSeen').value,
+      chamoisBucksSeen: document.getElementById('chamoisBucksSeen').value,
+      chamoisDoesSeen: document.getElementById('chamoisDoesSeen').value,
+      pigsSeen: document.getElementById('pigsSeen').value,
+      goatsSeen: document.getElementById('goatsSeen').value,
+      geeseSeen: document.getElementById('geeseSeen').value,
+      smallGameSeen: document.getElementById('smallGameSeen').value,
+      possumsDestroyed: document.getElementById('possumsDestroyed').value,
+      predatorsDestroyed: document.getElementById('predatorsDestroyed').value,
+      harvestSummary: harvests.length > 0 ? JSON.stringify(harvests) : 'None Taken',
+      harvestCount: harvests.length,
+      comments: document.getElementById('comments').value
+    };
+
+    const transaction = db.transaction(['daily_logs'], 'readwrite');
+    transaction.objectStore('daily_logs').add(record);
+
+    transaction.oncomplete = () => {
+      alert(`Diary entry for ${record.logDate} saved securely offline!`);
+      document.getElementById('reportForm').reset();
+      document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
+      [
+        'redStagsSeen','redHindsSeen','fallowBucksSeen','fallowDoesSeen',
+        'chamoisBucksSeen','chamoisDoesSeen','pigsSeen','goatsSeen',
+        'geeseSeen','smallGameSeen','possumsDestroyed','predatorsDestroyed'
+      ].forEach(id => {
+        document.getElementById(id).value = 0;
+      });
+      document.getElementById('numHunters').value = 1;
+      document.getElementById('hoursHunted').value = 4;
+      document.getElementById('harvestList').innerHTML = '';
+      harvestIndex = 0;
+      updateQueueDisplay();
+      syncData();
+    };
+  });
+
+  function updateQueueDisplay() {
+    if (!db) return;
+    const tx = db.transaction(['daily_logs'], 'readonly');
+    const countRequest = tx.objectStore('daily_logs').count();
+    countRequest.onsuccess = () => {
+      document.getElementById('queueStatus').textContent = `${countRequest.result} daily diary logs stored offline waiting for connection`;
+    };
+  }
+
+  async function syncData() {
+    if (!navigator.onLine || !db) return;
+    const tx = db.transaction(['daily_logs'], 'readwrite');
+    const store = tx.objectStore('daily_logs');
+    const getAllRequest = store.getAll();
+
+    getAllRequest.onsuccess = async () => {
+      const records = getAllRequest.result;
+      if (records.length === 0) return;
+      document.getElementById('statusBar').textContent = "🔄 Uploading daily logs to Trust Database...";
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(records)
+        });
+        const clearTx = db.transaction(['daily_logs'], 'readwrite');
+        clearTx.objectStore('daily_logs').clear();
+        clearTx.oncomplete = () => {
+          updateQueueDisplay();
+          updateNetworkStatus();
+        };
+      } catch (error) {
+        console.error("Sync interruption:", error);
+        updateNetworkStatus();
+      }
+    };
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(err => {
+        console.log('SW registration failed:', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
