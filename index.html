@@ -444,15 +444,7 @@
       </div>
 
       <div class="section-title">Pests Destroyed Today</div>
-      <div class="stepper-group">
-        <span class="stepper-label">Possums Destroyed</span>
-        <div class="stepper-controls">
-          <button type="button" onclick="changeVal('possumsDestroyed', -1)">−</button>
-          <input type="number" id="possumsDestroyed" value="0" readonly>
-          <button type="button" onclick="changeVal('possumsDestroyed', 1)">+</button>
-        </div>
-      </div>
-      <div class="stepper-group">
+        <div class="stepper-group">
         <span class="stepper-label">Feral Cats / Mustelids</span>
         <div class="stepper-controls">
           <button type="button" onclick="changeVal('predatorsDestroyed', -1)">−</button>
@@ -566,8 +558,8 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Suspected Bovine TB Lesions</label>
-        <select class="h-tb">
+        <label>Animal condition or health observations</label>
+        <select class="h-health">
           <option value="Clean / None Observed">Clean / Inspected - None Observed</option>
           <option value="Suspect Lesions in Lungs/Nodes">Suspect Lesions in Lungs/Nodes</option>
           <option value="Not Inspected">Not Inspected</option>
@@ -625,7 +617,7 @@
         age: card.querySelector('.h-age').value,
         condition: card.querySelector('.h-condition').value,
         utilization: card.querySelector('.h-utilization').value,
-        tb: card.querySelector('.h-tb').value
+        tb: card.querySelector('.h-health').value
       });
     });
 
@@ -647,7 +639,6 @@
       goatsSeen: document.getElementById('goatsSeen').value,
       geeseSeen: document.getElementById('geeseSeen').value,
       smallGameSeen: document.getElementById('smallGameSeen').value,
-      possumsDestroyed: document.getElementById('possumsDestroyed').value,
       predatorsDestroyed: document.getElementById('predatorsDestroyed').value,
       harvestSummary: harvests.length > 0 ? JSON.stringify(harvests) : 'None Taken',
       harvestCount: harvests.length,
@@ -664,7 +655,7 @@
       [
         'redStagsSeen','redHindsSeen','fallowBucksSeen','fallowDoesSeen',
         'chamoisBucksSeen','chamoisDoesSeen','pigsSeen','goatsSeen',
-        'geeseSeen','smallGameSeen','possumsDestroyed','predatorsDestroyed'
+        'geeseSeen','smallGameSeen','predatorsDestroyed'
       ].forEach(id => {
         document.getElementById(id).value = 0;
       });
