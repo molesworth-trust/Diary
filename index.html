@@ -172,7 +172,8 @@
       color: var(--text);
       background: transparent;
     }
-
+<input type="password" id="gatekeeperPasscode" placeholder="Enter access code..." autocomplete="current-password" onkeydown="if(event.key==='Enter'){checkPasscode();}">
+    
     /* Harvested Animal Dynamic Cards */
     .harvest-container {
       margin-top: 10px;
@@ -483,12 +484,16 @@
   const APP_SECRET_PASSCODE = 'molesworth2026';
 
   function checkPasscode() {
-    const userInput = document.getElementById('gatekeeperPasscode').value;
+    const input = document.getElementById('gatekeeperPasscode');
     const errorDiv = document.getElementById('authError');
-    if (userInput === APP_SECRET_PASSCODE) {
+    
+    // Strip accidental spaces and force lowercase so 'Molesworth2026' or 'molesworth2026 ' both pass
+    const cleanInput = (input.value || '').trim().toLowerCase();
+
+    if (cleanInput === APP_SECRET_PASSCODE) {
+      errorDiv.style.display = 'none';
       document.getElementById('authForm').style.display = 'none';
       document.getElementById('mainAppContent').style.display = 'block';
-      // Set today's date automatically
       document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
       initIndexedDB();
     } else {
@@ -610,7 +615,7 @@
   document.getElementById('reportForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Extract harvested animal cards
+   // Extract harvested animal cards
     const harvestCards = document.querySelectorAll('.harvest-card');
     const harvests = [];
     harvestCards.forEach((card) => {
@@ -620,7 +625,7 @@
         age: card.querySelector('.h-age').value,
         condition: card.querySelector('.h-condition').value,
         utilization: card.querySelector('.h-utilization').value,
-        health: card.querySelector('.h-health').value
+        healthCheck: card.querySelector('.h-health').value // Matches Apps Script
       });
     });
 
@@ -643,8 +648,9 @@
       geeseSeen: document.getElementById('geeseSeen').value,
       smallGameSeen: document.getElementById('smallGameSeen').value,
       predatorsDestroyed: document.getElementById('predatorsDestroyed').value,
-      harvestSummary: harvests.length > 0 ? JSON.stringify(harvests) : 'None Taken',
       harvestCount: harvests.length,
+      harvests: harvests, // Raw array for Apps Script to unpack into Harvest_Records
+      harvestSummary: harvests.length > 0 ? JSON.stringify(harvests) : 'None Taken',
       comments: document.getElementById('comments').value
     };
 
