@@ -172,8 +172,7 @@
       color: var(--text);
       background: transparent;
     }
-<input type="password" id="gatekeeperPasscode" placeholder="Enter access code..." autocomplete="current-password" onkeydown="if(event.key==='Enter'){checkPasscode();}">
-    
+
     /* Harvested Animal Dynamic Cards */
     .harvest-container {
       margin-top: 10px;
@@ -257,7 +256,7 @@
     <div class="section-title" style="margin-top:0;">Permit Verification</div>
     <div class="form-group">
       <label for="gatekeeperPasscode">Enter Form Passcode</label>
-      <input type="password" id="gatekeeperPasscode" placeholder="Enter access code..." autocomplete="current-password">
+      <input type="password" id="gatekeeperPasscode" placeholder="Enter access code..." autocomplete="current-password" onkeydown="if(event.key==='Enter'){checkPasscode();}">
       <div id="authError" class="error-msg">⚠️ Incorrect passcode. Check your hunting group details.</div>
     </div>
     <button type="button" class="submit-btn" onclick="checkPasscode()">Unlock Diary</button>
@@ -445,7 +444,7 @@
       </div>
 
       <div class="section-title">Pests Destroyed Today</div>
-        <div class="stepper-group">
+      <div class="stepper-group">
         <span class="stepper-label">Feral Cats / Mustelids</span>
         <div class="stepper-controls">
           <button type="button" onclick="changeVal('predatorsDestroyed', -1)">−</button>
@@ -470,8 +469,8 @@
 
     <div class="queue-counter" id="queueStatus">0 entries queued offline</div>
     <button type="button" onclick="syncData()" style="width:100%; margin-top:8px; padding:8px; background:none; border:1px solid #9bb0a5; border-radius:6px; font-size:0.8rem; color:#2d4a3e; cursor:pointer; font-weight:600;">
-  🔄 Force Cloud Sync Now
-</button>
+      🔄 Force Cloud Sync Now
+    </button>
   </div>
 </div>
 
@@ -479,7 +478,6 @@
   let db;
   let harvestIndex = 0;
 
-  // Insert your deployed Google Apps Script /exec URL
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyluuZLTeTA6Iow9h-kDt4tRel3qQM86sr_6kdq3BWkqY2oqXXcRlHvY3161ZTQIJ7M/exec';
   const APP_SECRET_PASSCODE = 'molesworth2026';
 
@@ -487,7 +485,6 @@
     const input = document.getElementById('gatekeeperPasscode');
     const errorDiv = document.getElementById('authError');
     
-    // Strip accidental spaces and force lowercase so 'Molesworth2026' or 'molesworth2026 ' both pass
     const cleanInput = (input.value || '').trim().toLowerCase();
 
     if (cleanInput === APP_SECRET_PASSCODE) {
@@ -586,7 +583,9 @@
     const request = indexedDB.open('MolesworthDiaryDB', 1);
     request.onupgradeneeded = (e) => {
       db = e.target.result;
-      db.createObjectStore('daily_logs', { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains('daily_logs')) {
+        db.createObjectStore('daily_logs', { keyPath: 'id', autoIncrement: true });
+      }
     };
     request.onsuccess = (e) => {
       db = e.target.result;
@@ -615,7 +614,6 @@
   document.getElementById('reportForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-   // Extract harvested animal cards
     const harvestCards = document.querySelectorAll('.harvest-card');
     const harvests = [];
     harvestCards.forEach((card) => {
@@ -625,7 +623,7 @@
         age: card.querySelector('.h-age').value,
         condition: card.querySelector('.h-condition').value,
         utilization: card.querySelector('.h-utilization').value,
-        healthCheck: card.querySelector('.h-health').value // Matches Apps Script
+        healthCheck: card.querySelector('.h-health').value
       });
     });
 
@@ -649,7 +647,7 @@
       smallGameSeen: document.getElementById('smallGameSeen').value,
       predatorsDestroyed: document.getElementById('predatorsDestroyed').value,
       harvestCount: harvests.length,
-      harvests: harvests, // Raw array for Apps Script to unpack into Harvest_Records
+      harvests: harvests,
       harvestSummary: harvests.length > 0 ? JSON.stringify(harvests) : 'None Taken',
       comments: document.getElementById('comments').value
     };
