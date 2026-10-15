@@ -570,10 +570,86 @@
           <option value="Not Inspected">Not Inspected</option>
         </select>
       </div>
+      <div class="form-group" style="margin-top: 10px;">
+        <label>Kill Location (GPS)</label>
+        <div style="display: flex; gap: 8px;">
+        <input type="text" class="h-coords" placeholder="Lat, Long" readonly style="flex: 1;">
+        <button type="button" class="remove-btn" style="background: #2d4a3e; color: white;" onclick="captureCoords(this)">📍 Get GPS</button>
+        </div>
+    </div>
+
+<div class="form-group">
+  <label>Kill / Inspection Photo</label>
+  <input type="file" accept="image/*" capture="environment" class="h-photo" onchange="processPhoto(this)">
+  <input type="hidden" class="h-photo-data">
+  <div class="photo-preview" style="font-size: 0.75rem; color: #137333; margin-top: 4px;"></div>
+</div>
     `;
     container.appendChild(card);
   }
+// 1. Capture Satellite GPS Fix Offline
+function captureCoords(button) {
+  const input = button.parentElement.querySelector('.h-coords');
+  button.textContent = "Acquiring...";
+  
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by this browser.");
+    button.textContent = "📍 Get GPS";
+    return;
+  }
 
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      input.value = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+      button.textContent = "✓ Fixed";
+    },
+    (err) => {
+      alert("Unable to acquire GPS fix. Ensure location services are enabled on your device.");
+      button.textContent = "📍 Get GPS";
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+// 2. Compress Camera Photo Down to ~200KB for Easy Offline Storage
+function processPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const card = input.closest('.harvest-card');
+  const preview = card.querySelector('.photo-preview');
+  const hiddenData = card.querySelector('.h-photo-data');
+
+  preview.textContent = "Compressing photo...";
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 1200;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > MAX_WIDTH) {
+        height = Math.round((height * MAX_WIDTH) / width);
+        width = MAX_WIDTH;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Output as compressed JPEG
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      hiddenData.value = compressedDataUrl;
+      preview.textContent = "✓ Photo attached and compressed";
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
   function removeHarvestCard(id) {
     const card = document.getElementById(`harvestCard_${id}`);
     if (card) card.remove();
