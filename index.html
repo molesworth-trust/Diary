@@ -570,88 +570,115 @@
           <option value="Not Inspected">Not Inspected</option>
         </select>
       </div>
-      <!-- NEW: GPS Location Capture -->
+     <!-- GPS Location Capture -->
       <div class="form-group" style="margin-top: 10px;">
         <label>Kill Location (GPS Coordinates)</label>
         <div style="display: flex; gap: 8px;">
-          <input type="text" class="h-coords" placeholder="Waiting for GPS..." readonly style="flex: 1;">
-          <button type="button" class="remove-btn" style="background: var(--primary); color: white; padding: 0 12px; font-size: 0.82rem; height: 42px; border-radius: 8px;" onclick="captureCoords(this)">📍 Get GPS</button>
+          <input type="text" class="h-coords" placeholder="Coordinates will appear here..." readonly style="flex: 1;">
+          <button type="button" class="gps-btn" style="background: var(--primary); color: white; padding: 0 12px; font-size: 0.82rem; height: 42px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;" onclick="captureCoords(this)">📍 Get GPS</button>
         </div>
       </div>
 
-      <!-- NEW: Photo Upload with Mobile Camera Trigger -->
+      <!-- Native Camera Launch Button -->
       <div class="form-group">
         <label>Kill / Inspection Photo (Optional)</label>
-        <input type="file" accept="image/*" capture="environment" class="h-photo-input" onchange="processPhoto(this)" style="padding: 6px;">
+        
+        <!-- Hidden input configured to launch rear camera directly -->
+        <input type="file" accept="image/*" capture="environment" class="h-photo-input" onchange="processPhoto(this)" style="display: none;">
         <input type="hidden" class="h-photo-data">
-        <div class="photo-preview" style="font-size: 0.8rem; color: #137333; margin-top: 4px; font-weight: 600;"></div>
+        
+        <!-- Visible Styled Action Button -->
+        <button type="button" style="width: 100%; padding: 12px; background: #ffffff; color: var(--primary); border: 1.5px solid var(--primary); border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="triggerCamera(this)">
+          📸 Open Camera & Take Photo
+        </button>
+        
+        <!-- Confirmation text after photo is snapped -->
+        <div class="photo-preview" style="font-size: 0.82rem; color: #137333; margin-top: 6px; font-weight: 600; text-align: center;"></div>
       </div>
     `;
     container.appendChild(card);
   }
-// 1. Capture Satellite GPS Fix Offline
-function captureCoords(button) {
-  const input = button.parentElement.querySelector('.h-coords');
-  button.textContent = "Acquiring...";
-  
-  if (!navigator.geolocation) {
-    alert("Geolocation is not supported by this browser.");
-    button.textContent = "📍 Get GPS";
-    return;
+// 1. Programmatically triggers the native camera and fetches GPS simultaneously
+  function triggerCamera(button) {
+    const card = button.closest('.harvest-card');
+    const fileInput = card.querySelector('.h-photo-input');
+    
+    // Launch the phone's native camera shutter screen
+    fileInput.click();
+
+    // Auto-fetch GPS if not already captured
+    const coordsInput = card.querySelector('.h-coords');
+    const gpsBtn = card.querySelector('.gps-btn');
+    if (!coordsInput.value && gpsBtn) {
+      captureCoords(gpsBtn);
+    }
   }
 
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      input.value = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
-      button.textContent = "✓ Fixed";
-    },
-    (err) => {
-      alert("Unable to acquire GPS fix. Ensure location services are enabled on your device.");
+  // 2. Hardware GPS Capture (Works in Airplane Mode / Backcountry)
+  function captureCoords(button) {
+    const card = button.closest('.harvest-card');
+    const input = card.querySelector('.h-coords');
+    button.textContent = "Acquiring...";
+    
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by this browser.");
       button.textContent = "📍 Get GPS";
-    },
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-  );
-}
+      return;
+    }
 
-// 2. Compress Camera Photo Down to ~200KB for Easy Offline Storage
-function processPhoto(input) {
-  const file = input.files[0];
-  if (!file) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        input.value = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+        button.textContent = "✓ Fixed";
+        button.style.background = "#137333";
+      },
+      (err) => {
+        alert("Unable to acquire satellite fix. Please ensure Location Services are enabled.");
+        button.textContent = "📍 Get GPS";
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    );
+  }
 
-  const card = input.closest('.harvest-card');
-  const preview = card.querySelector('.photo-preview');
-  const hiddenData = card.querySelector('.h-photo-data');
+  // 3. Compress the image in-browser to ~150-200 KB
+  function processPhoto(input) {
+    const file = input.files[0];
+    if (!file) return;
 
-  preview.textContent = "Compressing photo...";
+    const card = input.closest('.harvest-card');
+    const preview = card.querySelector('.photo-preview');
+    const hiddenData = card.querySelector('.h-photo-data');
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 1200;
-      let width = img.width;
-      let height = img.height;
+    preview.textContent = "Compressing photo...";
 
-      if (width > MAX_WIDTH) {
-        height = Math.round((height * MAX_WIDTH) / width);
-        width = MAX_WIDTH;
-      }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200; // Optimal for rural 3G/4G sync
+        let width = img.width;
+        let height = img.height;
 
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
 
-      // Output as compressed JPEG
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-      hiddenData.value = compressedDataUrl;
-      preview.textContent = "✓ Photo attached and compressed";
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+        hiddenData.value = compressedBase64;
+        preview.textContent = `✓ Photo attached (${Math.round(compressedBase64.length / 1024)} KB)`;
+      };
+      img.src = e.target.result;
     };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
+    reader.readAsDataURL(file);
+  }
+  
   function removeHarvestCard(id) {
     const card = document.getElementById(`harvestCard_${id}`);
     if (card) card.remove();
